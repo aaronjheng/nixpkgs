@@ -6,32 +6,29 @@
   git,
   stdenv,
   writableTmpDirAsHomeHook,
+  testers,
 }:
 
 buildGoModule (finalAttrs: {
   pname = "entire";
-  version = "0.4.7";
+  version = "0.5.1";
 
   src = fetchFromGitHub {
     owner = "entireio";
     repo = "cli";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-5ZVn6ocFmOAoIOF6RFIOKWyUwRyI1mK8JHCZ9AguNQM=";
+    hash = "sha256-79lZkh5mpCBZ4OOKDQL/0sQx2ZFZKZmJv2Una6LLgSs=";
   };
 
-  vendorHash = "sha256-r8+mXHN0OwhO4D/DdZIKWOYaszflmrrjIZVj20Am9gw=";
-
-  postPatch = ''
-    substituteInPlace go.mod --replace-fail "go 1.25.6" "go 1.25.5"
-  '';
+  vendorHash = "sha256-MYQUnzVJH3VKReankilC471Qoj76pK/xlICWeYZR094=";
 
   subPackages = [ "cmd/entire" ];
 
   ldflags = [
     "-s"
     "-w"
-    "-X=github.com/entireio/cli/cmd/entire/cli/buildinfo.Version=${finalAttrs.version}"
-    "-X=github.com/entireio/cli/cmd/entire/cli/buildinfo.Commit=${finalAttrs.src.rev}"
+    "-X=github.com/entireio/cli/cmd/entire/cli/versioninfo.Version=${finalAttrs.version}"
+    "-X=github.com/entireio/cli/cmd/entire/cli/versioninfo.Commit=${finalAttrs.src.rev}"
   ];
 
   nativeBuildInputs = [ installShellFiles ];
@@ -47,6 +44,10 @@ buildGoModule (finalAttrs: {
       --fish <($out/bin/entire completion fish) \
       --zsh <($out/bin/entire completion zsh)
   '';
+
+  passthru.tests.version = testers.testVersion {
+    package = finalAttrs.finalPackage;
+  };
 
   meta = {
     description = "CLI tool that captures AI agent sessions alongside git commits";
